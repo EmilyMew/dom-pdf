@@ -1,7 +1,7 @@
 {
-  "name": "dom-printer",
+  "name": "dom-pdf",
   "version": "0.0.1",
-  "description": "dom-printer",
+  "description": "dom-pdf",
   "author": "Emily Wang",
   "license": "ISC",
   "main": "lib/index.js",

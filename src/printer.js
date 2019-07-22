@@ -61,4 +61,13 @@ export default class Printer {
     const blobUrl = this.pdf.output('bloburl');
     window.open(blobUrl);
   }
+
+  /**
+   * preview method.
+   * 
+   * @param {string} fileName file name to save as.
+   */
+  save(fileName) {
+    this.pdf.save(fileName);
+  }
 };
