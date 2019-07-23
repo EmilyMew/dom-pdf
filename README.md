@@ -2,6 +2,16 @@
 
 Convert HTML DOM Element to PDF. You can save a specified element as PDF File, print it directly, or preview as PDF.
 
+Work by '996', sick in ICU. Keep your work-life balance, be a developer with happiness!
+<p>
+  <a href="https://996.icu">
+    <img src="https://img.shields.io/badge/link-996.icu-red.svg" alt="996.icu" />
+  </a>
+  <a href="https://github.com/996icu/996.ICU/blob/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-Anti%20996-blue.svg" alt="996.icu" />
+  </a>
+</p>
+
 ## Install
 
 `npm install --save dom-pdf`
