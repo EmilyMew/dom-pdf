@@ -1,6 +1,6 @@
 {
   "name": "dom-pdf",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "dom-pdf",
   "author": "Emily Wang",
   "license": "ISC",
@@ -16,6 +16,11 @@
     "type": "git",
     "url": "https://github.com/EmilyMew/dom-printer.git"
   },
+  "keywords": [
+    "dom",
+    "pdf",
+    "print"
+  ],
   "dependencies": {
     "html2canvas": "^1.0.0-rc.3",
     "jspdf": "^1.5.3"
