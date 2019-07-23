@@ -19,7 +19,8 @@
   "keywords": [
     "dom",
     "pdf",
-    "print"
+    "print",
+    "vue"
   ],
   "dependencies": {
     "html2canvas": "^1.0.0-rc.3",
