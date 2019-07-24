@@ -25,7 +25,7 @@ const html2PDF = (element, { orientation, pageSize, pageMargin, scale }) => {
     const pdf = new JSPDF(orientation, 'pt', pageSize);
     const pageWidth = pdf.internal.pageSize.width - pageMargin * 2;
     const pageHeight = element.offsetWidth / pageWidth * (pdf.internal.pageSize.height - pageMargin * 2);
-    dom.adjustHeight(node, pageHeight, pdf.internal.pageSize.height, pageMargin).then(() => {
+    dom.pageSplit(node, pageHeight, pdf.internal.pageSize.height, pageMargin).then(() => {
       const _canvas = document.createElement('canvas');
       _canvas.getContext('2d').scale(scale, scale);
       _canvas.width = node.offsetWidth * scale;

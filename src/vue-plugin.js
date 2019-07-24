@@ -26,7 +26,10 @@ const mixins = {
           printer.init(element, { orientation, pageSize, pageMargin, scale }).then(resolve);
         }
       }).then(() => {
+        this.$emit('pdf-generated');
         printer.print();
+      }).catch(err => {
+        this.$emit('pdf-generate-err', err);
       });
     }
   },
@@ -50,7 +53,10 @@ const mixins = {
           printer.init(element, { orientation, pageSize, pageMargin, scale }).then(resolve);
         }
       }).then(() => {
+        this.$emit('pdf-generated');
         printer.preview();
+      }).catch(err => {
+        this.$emit('pdf-generate-err', err);
       });
     }
   },
@@ -74,7 +80,10 @@ const mixins = {
           printer.init(element, { orientation, pageSize, pageMargin, scale }).then(resolve);
         }
       }).then(() => {
+        this.$emit('pdf-generated');
         printer.save(fileName);
+      }).catch(err => {
+        this.$emit('pdf-generate-err', err);
       });
     }
   }

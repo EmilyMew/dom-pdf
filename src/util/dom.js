@@ -2,7 +2,12 @@
  * $Id:$
  * Copyright 2018 Emily36107@outlook.com All rights reserved.
  */
-
+const isNotBlank = (str) => {
+  return str && str.trim();
+}
+const isBlank = (str) => {
+  return !isNotBlank(str);
+}
 /**
  * compute offset to an ancestor element.
  * 
@@ -45,7 +50,7 @@ const isBlockElement = (dom) => {
   const styles = window.getComputedStyle(dom);
   return styles.display === 'block' ||
     styles.display === 'table' || styles.display === 'flex' ||
-    dom.data && dom.data.trim() && styles.float !== 'none';
+    isNotBlank(dom.data) && styles.float !== 'none';
 };
 
 /**
@@ -58,7 +63,7 @@ const getLeaves = (dom) => {
   const result = [];
   if (!(dom instanceof Comment)) {
     if (dom instanceof Text) {
-      if (!dom.data || !dom.data.trim()) {
+      if (isBlank(dom.data)) {
         return result;
       }
     }
@@ -87,7 +92,7 @@ const getLeaves = (dom) => {
  * 
  * @param {Element|Node} root root node/element.
  */
-const combineLeaves = (root) => {
+const getCombinedLeaves = (root) => {
   const leaves = getLeaves(root);
   const noneBlockNodes = leaves.reduce((accumulator, current) => {
     let inlineArray = accumulator[accumulator.length - 1];
@@ -104,7 +109,60 @@ const combineLeaves = (root) => {
     const paragraph = document.createElement('p');
     nodes[0].parentElement.insertBefore(paragraph, nodes[0]);
     paragraph.append(...nodes);
+    leaves.splice(leaves.indexOf(nodes[0]), nodes.length, paragraph);
   });
+  return leaves;
+};
+
+/**
+ * Get the previous margin bottom of specified element
+ * 
+ * @param {Element} element element to calculate layout
+ * @param {*} ancestor root element
+ */
+const getPreviousMarginBottom = (element, ancestor) => {
+  const styles = window.getComputedStyle(element);
+  const paddingTop = parseFloat(styles.paddingTop);
+  const borderTop = parseFloat(styles.borderTop);
+  const calcPrevMargin = (isNaN(paddingTop) || paddingTop === 0) && (isNaN(borderTop) || borderTop === 0);
+  if (element.previousElementSibling) {
+    return calcPrevMargin ? parseFloat(window.getComputedStyle(element.previousElementSibling).marginTop) : 0;
+  } else {
+    return element === ancestor ? 0 : getPreviousMarginBottom(element.parentElement);
+  }
+};
+
+/**
+ * Add page divider before specified element.
+ * 
+ * @param {Element} root root element
+ * @param {Element} options 
+ *  - element specified element.
+ *  - top top position of page spliter
+ *  - marginHeight height of page spliter
+ */
+const addPageDivider = (root, { element, top, marginHeight }) => {
+  const styles = window.getComputedStyle(element);
+  const curMarginTop = parseFloat(styles.marginTop);
+  if (styles.display === 'table-row') {
+    const blankRow = document.createElement(element.tagName);
+    if (element.tagName.toUpperCase() !== 'TR' || element.tagName.toUpperCase() !== 'TH') {
+      blankRow.style.display = 'table-row';
+    }
+    blankRow.style.height = `${(isNaN(curMarginTop) ? 0 : curMarginTop) + marginHeight}px`;
+    element.parentElement.insertBefore(blankRow, element);
+  } else {
+    const prevMarginBottom = getPreviousMarginBottom(element, root);
+    element.style.marginTop = `${(isNaN(curMarginTop) ? 0 : curMarginTop) + prevMarginBottom + marginHeight}px`;
+  }
+  const pageSpliter = document.createElement('div');
+  pageSpliter.style.position = 'absolute';
+  pageSpliter.style.top = `${top}px`;
+  pageSpliter.style.left = 0;
+  pageSpliter.style.right = 0;
+  pageSpliter.style.height = `${marginHeight}px`;
+  pageSpliter.style.background = '#ffffff';
+  root.appendChild(pageSpliter);
 };
 
 /**
@@ -115,42 +173,35 @@ const combineLeaves = (root) => {
  * @param {Number} pdfHeight height of every page in pdf.
  * @param {Number} pageMargin margin.
  */
-const adjustHeight = (root, pageHeight, pdfHeight, pageMargin) => {
-  combineLeaves(root);
-  const leaf = getLeaves(root);
+const pageSplit = (root, pageHeight, pdfHeight, pageMargin) => {
+  const leaf = getCombinedLeaves(root);
   const marginPixels = pageHeight / (pdfHeight - pageMargin * 2) * pageMargin;
+  let totalBlankHeight = 0;
   let totalMarginHeight = 0;
-  const executors = leaf.map(l => {
-    return (resolve, reject) => {
-      const offset = getOffsetToAncestor(l, root);
-      const top = offset.top - totalMarginHeight;
-      const restHeightOnCurPage = pageHeight - top % pageHeight;
-      if (l.offsetHeight > restHeightOnCurPage) {
-        const styles = window.getComputedStyle(l);
-        const curMarginTop = parseFloat(styles.marginTop);
-        if (styles.display === 'table-row') {
-          const blankRow = document.createElement(l.tagName);
-          if (l.tagName.toUpperCase() !== 'TR') {
-            blankRow.style.display = 'table-row';
-          }
-          blankRow.style.height = `${(isNaN(curMarginTop) ? 0 : curMarginTop) + restHeightOnCurPage + marginPixels * 2}px`;
-          l.parentElement.insertBefore(blankRow, l);
-        } else {
-          l.style.marginTop = `${(isNaN(curMarginTop) ? 0 : curMarginTop) + restHeightOnCurPage + marginPixels * 2}px`;
-        }
+  const executors = leaf.map(element => {
+    const offset = getOffsetToAncestor(element, root);
+    const restHeightOnPage = pageHeight - (offset.top + totalBlankHeight) % pageHeight;
+    if (element.offsetHeight > restHeightOnPage) {
+      return (resolve, reject) => {
+        const top = offset.top + totalMarginHeight + totalBlankHeight;
+        const marginHeight = restHeightOnPage + marginPixels * 2;
+        const result = { element, top, marginHeight };
+        totalBlankHeight += restHeightOnPage;
         totalMarginHeight += marginPixels * 2;
-      }
-      resolve();
-    };
+        resolve(result);
+      };
+    }
+  }).filter(f => f !== null && f !== undefined);
+  return Promise.queue(...executors).then(([...results]) => {
+    results.forEach(option => {
+      addPageDivider(root, option);
+    });
   });
-  return Promise.queue(...executors);
 };
 
 export default {
   getOffsetToAncestor,
   isBlockElement,
   getLeaves,
-  combineLeaves,
-  getLeaveBlock,
-  adjustHeight
+  pageSplit
 };
