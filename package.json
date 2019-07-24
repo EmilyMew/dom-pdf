@@ -3,7 +3,7 @@
   "version": "0.0.4",
   "description": "dom-pdf",
   "author": "Emily Wang",
-  "license": "ISC AND ANTI-996",
+  "license": "MIT with ANTI-996",
   "main": "lib/index.js",
   "files": [
     "lib"

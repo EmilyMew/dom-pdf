@@ -10,6 +10,9 @@ Work by '996', sick in ICU. Keep your work-life balance, be a developer with hap
   <a href="https://github.com/996icu/996.ICU/blob/master/LICENSE">
     <img src="https://img.shields.io/badge/license-Anti%20996-blue.svg" alt="996.icu" />
   </a>
+  <a href="https://github.com/EmilyMew/dom-pdf/blob/master/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT" />
+  </a>
 </p>
 
 ## Install
